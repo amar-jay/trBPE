@@ -1,35 +1,19 @@
-import re
-from typing import Dict
+def visualise_tokens(token_values: list[bytes]) -> None:
+    background = [f"\u001b[48;5;{i}m" for i in [167, 179, 185, 77, 80, 68, 134]]
+    # If token boundaries do not occur at unicode character boundaries, it's unclear how best to
+    # visualise the token. Here, we'll just use the unicode replacement character to represent some
+    # fraction of a character.
+    # https://github.com/openai/tiktoken/blob/main/tiktoken/_educational.py#L147
+    unicode_token_values = [x.decode("utf-8", errors="replace") for x in token_values]
 
-MAX_NUM_THREADS = 4
-
-
-class CoreBPE:
-    """
-    Core BPE tokenizer
-    """
-    def __init__(self, encoder: Dict[bytes, Rank], special_tokens_encoder: Dict[str, Rank], pattern: str):
-        self.encoder = encoder
-        self.special_tokens_encoder = special_tokens_encoder
-        self.decoder = {v: k for k, v in encoder.items()}
-        self.special_tokens_decoder = {v: k.encode() for k, v in special_tokens_encoder.items()}
-        self.regex_tls = [re.compile(pattern) for _ in range(MAX_NUM_THREADS)]
-        self.special_regex_tls = [re.compile('|'.join(map(re.escape, special_tokens_encoder.keys()))) for _ in range(MAX_NUM_THREADS)]
-        self.sorted_token_bytes = sorted(encoder.keys())
-        #self.vocab = self._build_vocab() 
-
-    def _build_vocab(self):
-        return NotImplementedError
-
-    def save(self, prefix):
-        """
-        Saves two files: file_prefix.vocab and file_prefix.model
-        This is inspired (but not equivalent to!) sentencepiece's model saving:
-            - model file is the critical one, intended for load()
-            - vocab file is just a pretty printed version for human inspection only
-        """
-        model_file = prefix + ".model"
-        vocab_file = prefix + ".vocab"
-        with open(model_file, "w") as f:
-            f.write("")
-
+    running_length = 0
+    last_color = None
+    for token in unicode_token_values:
+        color = background[running_length % len(background)]
+        if color == last_color:
+            color = background[(running_length + 1) % len(background)]
+            assert color != last_color
+        last_color = color
+        running_length += len(token)
+        print(color + token, end="")
+    print("\u001b[0m")
