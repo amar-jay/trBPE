@@ -1,6 +1,8 @@
 # Not an exact copy of the original file, but a simplified version of the original file
 # https://github.com/openai/tiktoken/blob/main/tiktoken/_educational.py
 from typing import Optional
+import unicodedata
+import json
 import collections
 
 import regex
@@ -17,11 +19,11 @@ class BasicBPE:
     In this implementation we are not doing any merging
     """
 
-    def __init__(self, vocab_size, pattern = "", special_tokens = None):
+    def __init__(self, pattern = "", special_tokens = None):
         self.pattern = regex.compile(pattern)
+        self.merges:dict[list[bytes], int] = {}
         self.special_tokens = special_tokens or {}
         self.ranks = self._build_ranks() 
-        self.decoder = {v: k for k, v in self.encoder.items()}
 
     def _build_ranks(self):
         """
@@ -33,12 +35,14 @@ class BasicBPE:
             atoi[token] = idx
         return atoi 
 
-    def train(self, text:str, vocab_size: int, pattern: str) -> list[list[bytes]]:
+    def train(self, text:str, vocab_size: int) -> list[list[bytes]]:
         if vocab_size < MIN_VOCAB_SIZE:
             raise ValueError("Vocab size must be > 2^8")
 
 
         ranks = self.ranks
+        merges = {}
+
         # Splinter up our data into lists of bytes
         # data = "Hello world"
         # words = [
@@ -63,6 +67,7 @@ class BasicBPE:
 
             token = bytes(most_common_pair[0] + most_common_pair[1])
             ranks[token] = n # adding token at n
+            merges[token] = n 
 
             # update our vocabs to include tokens
             new_words = []
@@ -82,51 +87,82 @@ class BasicBPE:
             vocabs = new_words
 
         self.ranks = ranks
+        self.merges.update(merges)
+
+        vocabs = sorted(vocabs) # is this really necessary??
 
         return vocabs
 
+
+    def _print_token(self, b: bytes) -> str:
+        """
+        pretty print a token
+        escaping control characters
+        using errors='replace' to replace undefined them with the replacement char �.
+
+        https://stackoverflow.com/questions/4324790/removing-control-characters-from-a-string-in-python/19016117#19016117
+        http://www.unicode.org/reports/tr44/#GC_Values_Table
+        """
+        s = b.decode('utf-8', errors='replace')
+        chars = []
+        for ch in s:
+            if unicodedata.category(ch)[0] != "C":
+                chars.append(ch) # this character is ok
+            else:
+                chars.append(f"\\u{ord(ch):04x}") # escape
+        return str(chars)
+
+    def _save_vocab(self, file: str = "model"):
+        """
+        Similar to sentencepiece, we save the ranks in *.vocab. 
+        https://github.com/google/sentencepiece/blob/a216bd01d166ca2b26ad5167b54dd8d51f416ae9/src/trainer_interface.cc#L698
+        """
+        print("Saving vocabs to ", file + ".vocab")
+
+        inverted_merges = {idx: pair for pair, idx in self.merges.items()}
+        with open(file + ".vocab", "w+") as f:
+            f.write("#version: 0.0\n")
+            for token, idx in self.ranks.items():
+                # note: many tokens may be partial utf-8 sequences
+                # and cannot be decoded into valid strings. Here we're using
+                # errors='replace' to replace them with the replacement char �.
+                # this also means that we couldn't possibly use .vocab in load()
+                # because decoding in this way is a lossy operation!
+                s = self._print_token(token)
+                # find the children of this token, if any
+                if idx in inverted_merges:
+                    # if this token has children, render it nicely as a merge
+                    b = inverted_merges[idx]
+                    s0 = self._print_token(b[0])
+                    s1 = self._print_token(b[1])
+                    f.write(f"[{s0}][{s1}] ==> {idx}\n")
+                else:
+                    # otherwise this is leaf token, just print it
+                    # (this should just be the first 256 tokens, the bytes)
+                    f.write(f"[{s}] ==> {idx}\n")
+
     def _save_model(self, vocabs:list[list[bytes]], file: str = "model"):
         """
-        Similar to sentencepiece in llama, we save it in *.model. 
-        https://github.com/google/sentencepiece/blob/a216bd01d166ca2b26ad5167b54dd8d51f416ae9/src/trainer_interface.cc#L698
+        Similar to huggingface tokenizer, we save it in *.model instead of *-merges.txt. 
+        https://github.com/huggingface/tokenizers/blob/72a1973cd1553bcb67a90dc1b89a0e1483f20825/tokenizers/src/models/bpe/model.rs#L495
         """
-        print("Saving vocabs to ", file + ".model")
-        pass
+        print("Saving model: ", file + ".model")
 
-    def _save_vocab(self, vocabs:list[list[bytes]], file: str = "model"):
-        """
-        Similar to sentencepiece in llama, we save it in *.vocab. 
-        https://github.com/google/sentencepiece/blob/a216bd01d166ca2b26ad5167b54dd8d51f416ae9/src/trainer_interface.cc#L698
-        """
-
-        print("Saving vocabs to ", file + ".vocab")
-        with open(file + ".vocab", "w+") as f:
-            for i in enumerate(vocabs):
-                f.write()
+        # itoa of ranks bytes
+        with open(file + ".model", "w+", encoding="utf-8") as f:
+            json.dump(enumerate(vocabs), f) # DOES THIS WORK!!
 
 
 
-    def save(self, vocabs:list[list[bytes]], file: str = "model"):
+    def save(self, file: str = "model", vocabs=None):
+        if vocabs is None:
+            raise RuntimeError("You need to run train() first.")
+
         try:
             self._save_model(vocabs, file)
-            self._save_vocab(vocabs, file)
-        except Exception as e:
-            raise e
-
-        
-        for word in words:
-            word_bytes = word.encode("utf-8")
-            tokens.append(self._encode_word(word_bytes))
-            word_tokens = self.encoder.get(word_bytes)
-        
-        return tokens
-    def train(self):
-        pass
-
-    def _encode_word(self, word: str) -> dict[bytes, int]:
-        # check size of word
-        ranks = self.encoder
-
+            self._save_vocab(file)
+        except TypeError:
+            raise RuntimeError("You need to run train() first.")
 
 if __name__ == "__main__":
     vocab_size = 600
@@ -135,7 +171,9 @@ if __name__ == "__main__":
     with open("sample.txt", "r") as f:
         data = f.read()
 
-    enc = BasicBPE.train(data, vocab_size, gpt4_pattern)
-    print(enc)
 
-    pass
+
+    enc = BasicBPE(gpt4_pattern)
+    enc.train(data, vocab_size)
+    enc.save("bin/model")
+
