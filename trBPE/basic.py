@@ -153,11 +153,7 @@ class BasicBPE:
             json.dump(enumerate(vocabs), f) # DOES THIS WORK!!
 
 
-
-    def save(self, file: str = "model", vocabs=None):
-        if vocabs is None:
-            raise RuntimeError("You need to run train() first.")
-
+    def save(self, vocabs:list[list[bytes]], file: str = "model"):
         try:
             self._save_model(vocabs, file)
             self._save_vocab(file)
