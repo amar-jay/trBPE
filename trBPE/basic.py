@@ -1,6 +1,5 @@
 # Not an exact copy of the original file, but a simplified version of the original file
 # https://github.com/openai/tiktoken/blob/main/tiktoken/_educational.py
-from typing import Optional
 import unicodedata
 import json
 import collections
@@ -168,12 +167,12 @@ if __name__ == "__main__":
     vocab_size = 600
     gpt4_pattern = r""
     
-    with open("sample.txt", "r") as f:
+    with open("assets/sample.txt", "r") as f:
         data = f.read()
 
 
 
     enc = BasicBPE(gpt4_pattern)
     enc.train(data, vocab_size)
-    enc.save("bin/model")
+    enc.save("assets/model")
 

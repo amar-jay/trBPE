@@ -11,7 +11,7 @@ def load_tiktoken_bpe(
     tiktoken_bpe_file: str
 ) -> list[str]:
     # NB: do not add caching to this function
-    with open(tiktoken_bpe_file, "rb") as f:
+    with open("assets/" + tiktoken_bpe_file, "rb") as f:
         contents = f.read()
 
     res = []
@@ -37,14 +37,14 @@ def load_cached_tiktoken_bpe(
     if os.path.exists(cache_file):
 
         encoding = []
-        with open(cache_file, "rb") as f:
+        with open("assets/" + cache_file, "rb") as f:
             for line in f.read().splitlines():
                 encoding.append(line)
         return list(map(lambda x: x.decode("utf-8"), encoding))
 
 
     encoding = load_tiktoken_bpe(tiktoken_bpe_file)
-    with open(cache_file, "w+") as f:
+    with open("assets/" + cache_file, "w+") as f:
         for line in encoding:
             f.write(line + "\n")
     return encoding
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     _visualize(turkish_word_splitter("onlarındakilerden"))
     _visualize(turkish_word_splitter("sokaklarda"))
     print("-"*21, "TURKISH WORD TOKENS", "-"*21)
-    with open("tr_sample.txt", "r") as f:
+    with open("assets/tr_sample.txt", "r") as f:
         w = f.read()
         print(w)
         print("-"*63)
@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
     """
     print("regex split sample text")
-    with open("sample.txt", "r") as f:
+    with open("assets/sample.txt", "r") as f:
         text = f.read()
         print(regex_split(text))
     print("loading tiktoken_bpe")
