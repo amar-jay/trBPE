@@ -6,11 +6,11 @@ def turkish_word_splitter(word: str):
     Splits word into root and other suffixes based on context 
     """
     # Define lists of Turkish suffixes categorized by type
-    possessive_suffixes = ['ım', 'im', 'ın', 'in', 'ı', 'i', 'um', 'üm', 'un', 'ün', 'uz', 'ünüz', 'larım', 'lerim', 'larım', 'lerim', 'larımız', 'lerimiz', 'ları', 'leri', 'lar', 'ler']
+    possessive_suffixes = ['ım', 'im', 'ın', 'in', 'ı', 'i', 'um', 'üm', 'un', 'ün', 'uz', 'ünüz', 'larım', 'lerim', 'larım', 'lerim', 'larımız', 'lerimiz', 'ları', 'leri', 'lar', 'ler', 'ımız', 'imiz']
     plural_suffixes = ['ların', 'lerin', 'ler', 'lar']
     case_suffixes = ['da', 'de', 'ta', 'te', 'dan', 'den', 'tan', 'ten', 'a', 'e', 'ı', 'i', 'u', 'ü', 'yi', 'yı', 'yu', 'yü']
     tense_markers = ['yor', 'acak', 'ecek', 'dı', 'di', 'du', 'dü']
-    other_suffixes = ['dır', 'dir', 'ki']
+    other_suffixes = ['dır', 'dir', 'ki', 'ma']
 
     suffix_order = [*other_suffixes, *tense_markers, *case_suffixes, *plural_suffixes, *possessive_suffixes]
 
@@ -75,7 +75,7 @@ def turkish_split(text: str):
                                     continue
                                 characters.append(char[i])
 
-                            words.extend(characters)
+                            words.append(''.join(characters))
 
     return words
 

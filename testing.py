@@ -89,14 +89,12 @@ if __name__ == "__main__":
     #visualise_tokens(words)
     #    print(turkish_split("merhaba dünyadaki insanlar! okuldakilerden biri olmak istiyorum."))
 
-    """
     print("regex split sample text")
     with open("assets/sample.txt", "r") as f:
         text = f.read()
-        print(regex_split(text))
+        #print(regex_split(text))
     print("loading tiktoken_bpe")
-    bpe = load_cached_tiktoken_bpe("base.tiktoken", "base.bpe")
-    print(bpe[-100:])
+    bpe = load_cached_tiktoken_bpe("vocab.txt", "base.bpe")
+    #print(bpe[-100:])
     print("saving file")
-    """
 
