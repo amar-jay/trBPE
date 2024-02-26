@@ -1,1 +1,5 @@
 vocab.txt filter=lfs diff=lfs merge=lfs -text
+colored_tokens.png filter=lfs diff=lfs merge=lfs -text
+sample.txt filter=lfs diff=lfs merge=lfs -text
+tokens.png filter=lfs diff=lfs merge=lfs -text
+tr_sample.txt filter=lfs diff=lfs merge=lfs -text

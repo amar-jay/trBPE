@@ -38,7 +38,7 @@ def turkish_split(text: str):
     - turkish is aggulutinative by nature, so agglutinated pieces begin with `##` in tokenizer
     This is usuallay done with regex. However, I am bad at it so I did it this way
     """
-    with open("vocab.txt", "r") as f:
+    with open("assets/vocab.txt", "r") as f:
         vocabs = f.read().splitlines()
     words = []
     # split the text into words

@@ -1,4 +1,3 @@
-import json
 import regex as re
 from TurkishStemmer import TurkishStemmer
 from trBPE.core import visualise_tokens, turkish_word_splitter, turkish_split

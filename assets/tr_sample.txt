@@ -1,6 +1,3 @@
-Bugün hava çok güzel. Gökyüzünde mavi bulutlar uçuşuyor. 
-      Güneş yavaşça batıyor. Sokaklarda insanlar dolaşıyor, kuşlar ötüyor. 
-
-  Evlerimizde çay demliyor, misafirlerimiz geliyor. Çocuklar parkta oyun oynuyor, neşeyle koşuyorlar. Gece olunca yıldızlar parlıyor, ay ışığı her yeri aydınlatıyor. 
-
-Herkes mutlu, huzurlu ve umut dolu. Türkçe dilimiz zengin bir dildir, yapıları karmaşıktır ve güzeldir.
+version https://git-lfs.github.com/spec/v1
+oid sha256:f6d7435c81d7938f369acade4a4bc8b475658197aec15a94454c11603602a532
+size 1810
